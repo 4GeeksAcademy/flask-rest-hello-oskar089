@@ -5,11 +5,6 @@ import enum
 
 db = SQLAlchemy()
 
-# Enum para el tipo de media
-class MediaType(enum.Enum):
-    image = "image"
-    video = "video"
-
 class User(db.Model):
     __tablename__ = "user"
 
@@ -69,33 +64,20 @@ class Comment(db.Model):
             "post_id": self.post_id
         }
 
-class Media(db.Model):
-    __tablename__ = "media"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[str] = mapped_column(String(50), nullable=False)
-    url: Mapped[str] = mapped_column(String(255), nullable=False)
-    post_id: Mapped[int] = mapped_column(ForeignKey("post.id"), nullable=False)
+class Follower(db.Model):
+    __tablename__ = "follower"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_from_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
+    user_to_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
 
-    post: Mapped["Post"] = relationship("Post", back_populates="media")
+    user_from = db.relationship('User', foreign_keys=[user_from_id], backref='following')
+    user_to = db.relationship('User', foreign_keys=[user_to_id], backref='followers')
 
     def serialize(self):
         return {
             "id": self.id,
-            "type": self.type,
-            "url": self.url,
-            "post_id": self.post_id
-        }
-
-
-class Follower(db.Model):
-    __tablename__ = "follower"
-
-    user_from_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
-    user_to_id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
-
-    def serialize(self):
-        return {
             "user_from_id": self.user_from_id,
             "user_to_id": self.user_to_id
         }
